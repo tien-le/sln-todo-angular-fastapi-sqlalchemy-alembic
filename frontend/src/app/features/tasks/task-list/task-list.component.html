@@ -1,0 +1,206 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="md:flex md:items-center md:justify-between mb-8">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                My Tasks
+            </h2>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4">
+            <button type="button" (click)="openTaskForm()"
+                class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                New Task
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white shadow rounded-lg p-4 mb-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Search</label>
+                <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()"
+                    placeholder="Search tasks..."
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border" />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border">
+                    <option [ngValue]="undefined">All</option>
+                    <option [ngValue]="TaskStatus.PENDING">Pending</option>
+                    <option [ngValue]="TaskStatus.IN_PROGRESS">In Progress</option>
+                    <option [ngValue]="TaskStatus.COMPLETED">Completed</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Priority</label>
+                <select [(ngModel)]="priorityFilter" (ngModelChange)="onFilterChange()"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border">
+                    <option [ngValue]="undefined">All</option>
+                    <option [ngValue]="TaskPriority.LOW">Low</option>
+                    <option [ngValue]="TaskPriority.MEDIUM">Medium</option>
+                    <option [ngValue]="TaskPriority.HIGH">High</option>
+                    <option [ngValue]="TaskPriority.URGENT">Urgent</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Sort By</label>
+                <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border">
+                    <option value="-created_at">Newest First</option>
+                    <option value="created_at">Oldest First</option>
+                    <option value="-due_date">Due Date (Latest)</option>
+                    <option value="due_date">Due Date (Earliest)</option>
+                    <option value="priority">Priority</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading()) {
+    <div class="flex justify-center items-center py-12">
+        <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+    </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+    <div class="rounded-md bg-red-50 p-4">
+        <p class="text-sm text-red-700">{{ error() }}</p>
+    </div>
+    }
+
+    <!-- Task List -->
+    @if (!loading() && !error()) {
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        @if (tasks().length === 0) {
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new task.</p>
+        </div>
+        } @else {
+        <ul class="divide-y divide-gray-200">
+            @for (task of tasks(); track task.id) {
+            <li>
+                <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center flex-1 min-w-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center">
+                                    <h3 class="text-lg font-medium text-gray-900 truncate">
+                                        {{ task.title }}
+                                    </h3>
+                                    <span [class]="getPriorityClass(task.priority)"
+                                        class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                        {{ task.priority }}
+                                    </span>
+                                    <span [class]="getStatusClass(task.status)"
+                                        class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                        {{ task.status }}
+                                    </span>
+                                </div>
+                                @if (task.description) {
+                                <p class="mt-1 text-sm text-gray-500 truncate">
+                                    {{ task.description }}
+                                </p>
+                                }
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    @if (task.due_date) {
+                                    <span class="mr-4">
+                                        Due: {{ task.due_date | date:'short' }}
+                                    </span>
+                                    }
+                                    <span>
+                                        Created: {{ task.created_at | date:'short' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 ml-4">
+                            @if (task.status !== TaskStatus.COMPLETED) {
+                            <button (click)="completeTask(task.id)"
+                                class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none">
+                                Complete
+                            </button>
+                            }
+                            <button [routerLink]="['/tasks', task.id, 'edit']"
+                                class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                                Edit
+                            </button>
+                            <button (click)="deleteTask(task.id)"
+                                class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            }
+        </ul>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+    <div
+        class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4 rounded-lg shadow">
+        <div class="flex-1 flex justify-between sm:hidden">
+            <button (click)="previousPage()" [disabled]="currentPage() === 1"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                Previous
+            </button>
+            <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                Next
+            </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing
+                    <span class="font-medium">{{ ((currentPage() - 1) * pageSize()) + 1 }}</span>
+                    to
+                    <span class="font-medium">{{ Math.min(currentPage() * pageSize(), totalTasks()) }}</span>
+                    of
+                    <span class="font-medium">{{ totalTasks() }}</span>
+                    results
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    <button (click)="previousPage()" [disabled]="currentPage() === 1"
+                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                        Previous
+                    </button>
+                    <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                        Next
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+    }
+    }
+</div>

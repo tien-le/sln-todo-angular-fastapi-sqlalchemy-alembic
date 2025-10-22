@@ -1,0 +1,113 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Sign in to your account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Or
+                <a routerLink="/auth/register" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    create a new account
+                </a>
+            </p>
+        </div>
+
+        <!-- OAuth Login Buttons -->
+        @if (oauthEnabled() && oauthProviders().length > 0) {
+        <div class="mt-6">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-50 text-gray-500">Or continue with</span>
+                </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 gap-3">
+                @for (provider of oauthProviders(); track provider.name) {
+                <button
+                    type="button"
+                    (click)="loginWithOAuth(provider.name)"
+                    [disabled]="oauthLoading()"
+                    class="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <span class="text-lg mr-2">
+                        @if (provider.name === 'google') { 🔵 }
+                        @else if (provider.name === 'github') { ⚫ }
+                        @else if (provider.name === 'microsoft') { 🟦 }
+                    </span>
+                    Sign in with {{ provider.display_name }}
+                </button>
+                }
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-50 text-gray-500">Or sign in with email</span>
+                </div>
+            </div>
+        </div>
+        }
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+            @if (error()) {
+            <div class="rounded-md bg-red-50 p-4">
+                <p class="text-sm text-red-700">{{ error() }}</p>
+            </div>
+            }
+
+            <div class="rounded-md shadow-sm space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">
+                        Email address
+                    </label>
+                    <input id="email" type="email" formControlName="email" required
+                        class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Email address" />
+                    @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">Please enter a valid email address</p>
+                    }
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">
+                        Password
+                    </label>
+                    <input id="password" type="password" formControlName="password" required
+                        class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Password" />
+                    @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">Password is required</p>
+                    }
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" [disabled]="loginForm.invalid || loading()"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    @if (loading()) {
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </span>
+                    Signing in...
+                    } @else {
+                    Sign in
+                    }
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  # Backend Tests
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: test
+    container_name: todo-backend-test
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///:memory:
+      - SECRET_KEY=test-secret-key
+      - TESTING=true
+    volumes:
+      - ./backend/htmlcov:/app/htmlcov
+      - ./backend/coverage.xml:/app/coverage.xml
+    command: pytest tests/ -v --cov=app --cov-report=html --cov-report=xml --cov-report=term
+
+  # Frontend Tests
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: test
+    container_name: todo-frontend-test
+    volumes:
+      - ./frontend/coverage:/app/coverage
+    command: npm run test:ci

@@ -1,0 +1,73 @@
+# =========================================
+# 🌐 General Project Ignore Rules
+# =========================================
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Logs
+*.log
+
+# IDE / Editor settings
+.vscode/
+.idea/
+.cursor/
+
+# Markdown docs
+*.md
+!README.md
+docs/
+
+# Postman collections
+postman/
+
+# =========================================
+# 🐍 Backend (FastAPI / Python)
+# =========================================
+
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/.cache/
+backend/.coverage
+backend/.coverage.*
+backend/htmlcov/
+backend/coverage.xml*
+backend/.env
+backend/.venv/
+backend/venv/
+backend/*.sqlite3
+backend/*.md
+
+# =========================================
+# ⚙️ Frontend (Angular / Node)
+# =========================================
+
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.cache/
+frontend/.coverage
+frontend/.coverage.*
+frontend/coverage/
+frontend/coverage.xml*
+frontend/.env
+frontend/.env.local
+frontend/*.md
+
+# =========================================
+# 🐳 Docker / Deployment
+# =========================================
+
+docker-data/
+deployment/
+*.log
+
+# =========================================
+# 🧩 GitHub Files (optional exclusions)
+# =========================================
+
+.github/copilot-instructions.md
+.github/workflows/deploy-aws.yml
