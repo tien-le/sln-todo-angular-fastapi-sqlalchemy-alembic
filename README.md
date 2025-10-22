@@ -1,5 +1,6 @@
 # TODO Application - Implementation Guide
 
+
 A modern, containerized TODO application built with Angular 20 (frontend) and FastAPI + SQLAlchemy 2 + PostgreSQL 18 (backend), following Test-Driven Development (TDD) principles and Clean Architecture patterns.
 
 ## 📋 Table of Contents
