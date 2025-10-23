@@ -17,26 +17,43 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     libpq-dev \
     curl \
+    dnsutils \
+    iputils-ping \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Dependencies
 FROM base as dependencies
 
-# Copy requirements file
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --user --no-cache-dir -r requirements.txt
 
-# Stage 3: Test
+# Set PATH to include local packages (inherited by all subsequent stages)
+ENV PATH=/root/.local/bin:$PATH
+
+# Stage 3: Runtime (common setup for development and production)
+FROM dependencies as runtime
+
+# Copy and setup entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 8000
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Stage 4: Test
 FROM dependencies as test
 
-# Copy test requirements
+# Copy test requirements and install
 COPY requirements-test.txt .
 RUN pip install --user --no-cache-dir -r requirements-test.txt
-
-# Set PATH to include local packages
-ENV PATH=/root/.local/bin:$PATH
 
 # Copy application code
 COPY . .
@@ -44,57 +61,22 @@ COPY . .
 # Run tests
 CMD ["pytest", "tests/", "-v", "--cov=app", "--cov-report=term", "--cov-report=html"]
 
-# Stage 4: Development
-FROM dependencies as development
-
-# Set PATH to include local packages
-ENV PATH=/root/.local/bin:$PATH
-
-# Copy entrypoint script first
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Copy application code
-COPY . .
-
-# Expose port
-EXPOSE 8000
-
-# Set entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+# Stage 5: Development
+FROM runtime as development
 
 # Run with hot reload
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
-# Stage 5: Production
-FROM base as production
+# Stage 6: Production
+FROM runtime as production
 
-# Copy installed packages from dependencies stage
-COPY --from=dependencies /root/.local /root/.local
-
-# Set PATH to include local packages
-ENV PATH=/root/.local/bin:$PATH
-
-# Copy entrypoint script first (as root)
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Copy application code
-COPY . .
-
-# Create non-root user
+# Create non-root user and set ownership
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
-
-# Expose port
-EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')"
 
-# Set entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
-
-# Run application
+# Run application with multiple workers
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

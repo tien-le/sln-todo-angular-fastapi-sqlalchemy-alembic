@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     # Database Configuration
     DATABASE_URL: str = "postgresql+asyncpg://todo:todo@postgres:5432/todo_db"
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_database_url(cls, v):
+        """Convert Railway's postgresql:// to postgresql+asyncpg:// for SQLAlchemy."""
+        if isinstance(v, str) and v.startswith("postgresql://") and "+asyncpg" not in v:
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
+
     # CORS Configuration
     BACKEND_CORS_ORIGINS: Union[str, List[str]] = [
         "http://localhost:4200",
